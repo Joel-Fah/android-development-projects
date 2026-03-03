@@ -42,8 +42,9 @@ class ExcelWriter {
 
     // Write each header cell in row 0
     for (var col = 0; col < headers.length; col++) {
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0))
-        .value = TextCellValue(headers[col]);
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0))
+          .value = TextCellValue(headers[col]);
     }
 
     // Step 4 — Write one row per student
@@ -55,34 +56,48 @@ class ExcelWriter {
       var col = 0;
 
       // Column 0 — Student ID
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: col++, rowIndex: excelRow))
-        .value = TextCellValue(student.studentId);
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: col++, rowIndex: excelRow))
+          .value = TextCellValue(student.studentId);
 
       // Column 1 — Name
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: col++, rowIndex: excelRow))
-        .value = TextCellValue(student.name);
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: col++, rowIndex: excelRow))
+          .value = TextCellValue(student.name);
 
       // Columns 2..N — Individual subject scores
       for (final score in student.scores) {
-        sheet.cell(CellIndex.indexByColumnRow(columnIndex: col++, rowIndex: excelRow))
-          .value = DoubleCellValue(score);
+        sheet
+            .cell(CellIndex.indexByColumnRow(
+                columnIndex: col++, rowIndex: excelRow))
+            .value = DoubleCellValue(score);
       }
 
       // Average column
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: col++, rowIndex: excelRow))
-        .value = DoubleCellValue(student.average);
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: col++, rowIndex: excelRow))
+          .value = DoubleCellValue(student.average);
 
       // Grade column
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: col++, rowIndex: excelRow))
-        .value = TextCellValue(student.grade);
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: col++, rowIndex: excelRow))
+          .value = TextCellValue(student.grade);
 
       // GPA column
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: col++, rowIndex: excelRow))
-        .value = DoubleCellValue(student.gpa);
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: col++, rowIndex: excelRow))
+          .value = DoubleCellValue(student.gpa);
 
       // Status column
-      sheet.cell(CellIndex.indexByColumnRow(columnIndex: col++, rowIndex: excelRow))
-        .value = TextCellValue(student.status);
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: col++, rowIndex: excelRow))
+          .value = TextCellValue(student.status);
     }
 
     // Step 5 — Encode the workbook to bytes and save to disk
