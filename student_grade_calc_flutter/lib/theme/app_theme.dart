@@ -46,7 +46,7 @@ abstract class AppSpacing {
 /// AppRadius — consistent border radius values.
 abstract class AppRadius {
   static const double card = 12.0;
-  static const double button = 8.0;
+  static const double button = 24.0;
   static const double badge = 6.0;
 }
 

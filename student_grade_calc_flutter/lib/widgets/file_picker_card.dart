@@ -84,17 +84,36 @@ class FilePickerCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              if (isProcessing)
-                const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              else
-                ElevatedButton(
-                  onPressed: onProcess,
-                  child: const Text('Process File'),
-                ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: isProcessing
+                    ? Column(
+                        key: const ValueKey('loader'),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            height: 28,
+                            width: 28,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: AppColors.accent,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            'Processing...',
+                            style: AppTextStyles.caption(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      )
+                    : ElevatedButton(
+                        key: const ValueKey('button'),
+                        onPressed: onProcess,
+                        child: const Text('Process File'),
+                      ),
+              ),
             ],
           ],
         ),
