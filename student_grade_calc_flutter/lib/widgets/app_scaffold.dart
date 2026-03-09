@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:remixicon/remixicon.dart';
 import '../theme/app_theme.dart';
 
 /// Root scaffold with bottom navigation bar.
@@ -32,28 +35,45 @@ class AppScaffold extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(color: AppColors.border, width: 1),
+      bottomNavigationBar: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 24.0, sigmaY: 24.0),
+            child: ClipOval(
+              child: Container(
+                width: MediaQuery.sizeOf(context).width,
+                height: 100.0,
+                decoration: BoxDecoration(
+                  color: AppColors.textSecondary.withValues(alpha: 0.2)
+                ),
+              ),
+            ),
           ),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: currentIndex,
-          onTap: onTabChanged,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
+          Container(
+            decoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(color: AppColors.border, width: 1),
+              ),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history_outlined),
-              activeIcon: Icon(Icons.history),
-              label: 'History',
+            child: BottomNavigationBar(
+              currentIndex: currentIndex,
+              onTap: onTabChanged,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(RemixIcons.home_6_line),
+                  activeIcon: Icon(RemixIcons.home_6_fill),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(RemixIcons.archive_2_line),
+                  activeIcon: Icon(RemixIcons.archive_2_fill),
+                  label: 'History',
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
