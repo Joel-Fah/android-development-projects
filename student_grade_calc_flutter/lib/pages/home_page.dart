@@ -1,3 +1,6 @@
+import 'dart:io' show File;
+import 'dart:typed_data' show Uint8List;
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:printing/printing.dart';
@@ -129,17 +132,30 @@ class _HomePageState extends State<HomePage> {
 
   // ── Excel export ───────────────────────────────────────────────────────────
   Future<void> _exportExcel() async {
-    // Ask user where to save the file
     try {
+      final bytes = _excelService.generateReportBytes(
+        _students,
+        _subjectHeaders,
+      );
+
+      // saveFile opens the native save dialog on all platforms (Android, iOS, Desktop)
       final savePath = await FilePicker.platform.saveFile(
         dialogTitle: 'Save Grade Report',
         fileName: 'grades_output.xlsx',
         allowedExtensions: ['xlsx'],
         type: FileType.custom,
+        bytes: Uint8List.fromList(bytes),
       );
       if (savePath == null) return;
 
-      await _excelService.writeFile(savePath, _students, _subjectHeaders);
+      // On some platforms saveFile writes the bytes itself when `bytes` is
+      // provided; on others it only returns the chosen path. Write to be safe.
+      final file =
+          File(savePath.endsWith('.xlsx') ? savePath : '$savePath.xlsx');
+      if (!await file.exists()) {
+        await file.writeAsBytes(bytes);
+      }
+
       _showSnackBar('Excel file saved successfully.');
     } catch (e) {
       _showSnackBar('Failed to save Excel: ${e.toString()}');
@@ -163,61 +179,85 @@ class _HomePageState extends State<HomePage> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+      );
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.lg,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Page header
-          Text('Grade Calculator', style: AppTextStyles.display()),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            'Import an Excel file to compute student grades.',
-            style: AppTextStyles.body(color: AppColors.textSecondary),
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.lg,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Page header
+                Text('Grade Calculator', style: AppTextStyles.display()),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Import an Excel file to compute student grades.',
+                  style: AppTextStyles.body(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+
+                // File picker
+                FilePickerCard(
+                  selectedFileName: _selectedFileName,
+                  isProcessing: _isProcessing,
+                  onFilePicked: _pickFile,
+                  onProcess: _processFile,
+                ),
+
+                // Error message (shown only on failure)
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text(_errorMessage!,
+                      style: AppTextStyles.body(color: AppColors.danger)),
+                ],
+
+                // Results (shown only after successful processing)
+                if (_hasResults) ...[
+                  const SizedBox(height: AppSpacing.xl),
+                  Text('Results', style: AppTextStyles.heading()),
+                  const SizedBox(height: AppSpacing.md),
+                  ResultsTable(
+                      students: _students, subjectHeaders: _subjectHeaders),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+        ),
 
-          // File picker
-          FilePickerCard(
-            selectedFileName: _selectedFileName,
-            isProcessing: _isProcessing,
-            onFilePicked: _pickFile,
-            onProcess: _processFile,
-          ),
-
-          // Error message (shown only on failure)
-          if (_errorMessage != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(_errorMessage!,
-                style: AppTextStyles.body(color: AppColors.danger)),
-          ],
-
-          // Results (shown only after successful processing)
-          if (_hasResults) ...[
-            const SizedBox(height: AppSpacing.xl),
-            Text('Results', style: AppTextStyles.heading()),
-            const SizedBox(height: AppSpacing.md),
-            ResultsTable(students: _students, subjectHeaders: _subjectHeaders),
-            const SizedBox(height: AppSpacing.lg),
-            ExportButtons(
+        // Export buttons — fixed at bottom, always visible when results exist
+        if (_hasResults)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
+            decoration: const BoxDecoration(
+              color: AppColors.background,
+              border: Border(
+                top: BorderSide(color: AppColors.border),
+              ),
+            ),
+            child: ExportButtons(
               onExportExcel: _exportExcel,
               onExportPdf: _exportPdf,
             ),
-            const SizedBox(height: AppSpacing.xl),
-          ],
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

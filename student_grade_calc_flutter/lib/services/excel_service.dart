@@ -141,4 +141,69 @@ class ExcelService {
     if (fileBytes == null) throw Exception('Failed to encode Excel file.');
     await File(outputPath).writeAsBytes(fileBytes);
   }
+
+  /// Encodes an enriched [students] list to .xlsx bytes (no disk write).
+  List<int> generateReportBytes(
+    List<Student> students,
+    List<String> subjectHeaders,
+  ) {
+    final excel = Excel.createExcel();
+    final sheet = excel['Sheet1'];
+
+    final headers = [
+      'StudentID',
+      'Name',
+      ...subjectHeaders,
+      'Average',
+      'Grade',
+      'GPA',
+      'Status',
+    ];
+    for (int col = 0; col < headers.length; col++) {
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: col, rowIndex: 0))
+          .value = TextCellValue(headers[col]);
+    }
+
+    for (int i = 0; i < students.length; i++) {
+      final s = students[i];
+      final rowIndex = i + 1;
+
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex))
+          .value = TextCellValue(s.studentId);
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex))
+          .value = TextCellValue(s.name);
+
+      for (int j = 0; j < s.scores.length; j++) {
+        sheet
+            .cell(CellIndex.indexByColumnRow(
+                columnIndex: 2 + j, rowIndex: rowIndex))
+            .value = DoubleCellValue(s.scores[j]);
+      }
+
+      final offset = 2 + s.scores.length;
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: offset, rowIndex: rowIndex))
+          .value = DoubleCellValue(s.average);
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: offset + 1, rowIndex: rowIndex))
+          .value = TextCellValue(s.grade);
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: offset + 2, rowIndex: rowIndex))
+          .value = DoubleCellValue(s.gpa);
+      sheet
+          .cell(CellIndex.indexByColumnRow(
+              columnIndex: offset + 3, rowIndex: rowIndex))
+          .value = TextCellValue(s.status);
+    }
+
+    final bytes = excel.encode();
+    if (bytes == null) throw Exception('Failed to encode Excel file.');
+    return bytes;
+  }
 }

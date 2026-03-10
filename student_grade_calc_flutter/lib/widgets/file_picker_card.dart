@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'package:remixicon/remixicon.dart';
 
 /// A dashed-border card that lets the user pick an Excel file.
 ///
@@ -43,7 +44,7 @@ class FilePickerCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.upload_file_outlined,
+              RemixIcons.file_excel_2_line,
               size: 40,
               color: AppColors.textHint,
             ),
@@ -57,7 +58,7 @@ class FilePickerCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             ElevatedButton(
               onPressed: onFilePicked,
-              child: const Text('Browse'),
+              child: const Text('Browse Files'),
             ),
 
             // Show selected file name and Process button when a file is picked
@@ -84,17 +85,36 @@ class FilePickerCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              if (isProcessing)
-                const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              else
-                ElevatedButton(
-                  onPressed: onProcess,
-                  child: const Text('Process File'),
-                ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: isProcessing
+                    ? Column(
+                        key: const ValueKey('loader'),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            height: 28,
+                            width: 28,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: AppColors.accent,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            'Processing...',
+                            style: AppTextStyles.caption(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      )
+                    : ElevatedButton(
+                        key: const ValueKey('button'),
+                        onPressed: onProcess,
+                        child: const Text('Process File'),
+                      ),
+              ),
             ],
           ],
         ),
@@ -108,7 +128,7 @@ class _DashedBorderPainter extends CustomPainter {
   final Color color;
   final double radius;
   static const double _dashWidth = 6.0;
-  static const double _dashGap = 4.0;
+  static const double _dashGap = 8.0;
   static const double _strokeWidth = 1.5;
 
   _DashedBorderPainter({
@@ -121,6 +141,7 @@ class _DashedBorderPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..strokeWidth = _strokeWidth
+      ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
 
     final rrect = RRect.fromRectAndRadius(
