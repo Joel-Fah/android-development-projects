@@ -64,7 +64,7 @@ class AppScaffold extends StatelessWidget {
                   icon: Icon(RemixIcons.home_6_line),
                   activeIcon: Icon(RemixIcons.home_6_fill),
                   label: 'Home',
-                ),
+                ),vsc
                 BottomNavigationBarItem(
                   icon: Icon(RemixIcons.archive_2_line),
                   activeIcon: Icon(RemixIcons.archive_2_fill),
