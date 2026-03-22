@@ -2,12 +2,29 @@ import '../models/student.dart';
 
 /// Stateless service that computes grades for a list of students.
 ///
+/// Refactored to use an interface (abstract class) and a factory method.
+/// This allows for easy swapping of grading algorithms (e.g. weighted average)
+/// in the future without changing the rest of the app.
+abstract class GradeCalculator {
+  /// Factory method returning the default implementation.
+  factory GradeCalculator() => StandardGradeCalculator();
+
+  double computeAverage(List<double> scores);
+  String assignGrade(double average);
+  double assignGpa(String grade);
+  String determineStatus(String grade);
+  Student calculate(Student student);
+  List<Student> calculateAll(List<Student> students);
+  double classAverage(List<Student> students);
+}
+
+/// Standard implementation of [GradeCalculator].
+///
 /// All methods are pure functions — given the same input, they always
 /// return the same output, and they never modify any external state.
 /// This makes them very easy to test (see grade_calculator_test.dart).
-class GradeCalculator {
-  /// Returns the arithmetic mean of [scores].
-  /// Returns 0.0 if [scores] is empty to avoid division by zero.
+class StandardGradeCalculator implements GradeCalculator {
+  @override
   double computeAverage(List<double> scores) {
     if (scores.isEmpty) return 0.0;
     // fold() starts at 0.0 and adds each score one by one
@@ -15,18 +32,7 @@ class GradeCalculator {
     return total / scores.length;
   }
 
-  /// Maps a numeric [average] to a letter grade string.
-  ///
-  /// Uses a simple if/else chain — intentionally kept readable.
-  /// The grading scale used here:
-  ///   A  (4.0) → 80–100
-  ///   B+ (3.5) → 70–79
-  ///   B  (3.0) → 60–69
-  ///   C+ (2.5) → 55–59
-  ///   C  (2.0) → 50–54
-  ///   D+ (1.5) → 45–49
-  ///   D  (1.0) → 40–44
-  ///   F  (0.0) → 0–39
+  @override
   String assignGrade(double average) {
     if (average >= 80) return 'A';
     if (average >= 70) return 'B+';
@@ -38,7 +44,7 @@ class GradeCalculator {
     return 'F';
   }
 
-  /// Returns the GPA value corresponding to a letter [grade].
+  @override
   double assignGpa(String grade) {
     switch (grade) {
       case 'A':
@@ -60,12 +66,10 @@ class GradeCalculator {
     }
   }
 
-  /// Returns "PASS" if the student's [grade] is not "F", else "FAIL".
+  @override
   String determineStatus(String grade) => grade == 'F' ? 'FAIL' : 'PASS';
 
-  /// Enriches a single [student] with computed average, grade, GPA, and status.
-  ///
-  /// Uses [copyWith] — never mutates the original object.
+  @override
   Student calculate(Student student) {
     final avg = computeAverage(student.scores);
     final grade = assignGrade(avg);
@@ -78,12 +82,11 @@ class GradeCalculator {
     );
   }
 
-  /// Applies [calculate] to every student in [students].
-  /// Returns a new list — the original is not modified.
+  @override
   List<Student> calculateAll(List<Student> students) =>
       students.map(calculate).toList();
 
-  /// Computes the class average from an already-enriched [students] list.
+  @override
   double classAverage(List<Student> students) {
     if (students.isEmpty) return 0.0;
     return students.fold(0.0, (sum, s) => sum + s.average) / students.length;
