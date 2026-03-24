@@ -1,19 +1,9 @@
-# student_grade_calc_flutter
+# Grady - Student Grade Calculator
+Grady is a simple Flutter application designed to calculate and display student grades based on their scores. The app demonstrates the use of factory methods, interfaces, polymorphism, and inheritance to create a flexible and maintainable codebase.
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+<img src="./assets/images/docs/grady_1.png" alt="Grady screenshot splash" width="30%" />
+<img src="./assets/images/docs/grady_2.png" alt="Grady screenshot splash" width="30%" />
+<img src="./assets/images/docs/grady_3.png" alt="Grady screenshot splash" width="30%" />
 
 ## Architecture & Design Patterns
 
