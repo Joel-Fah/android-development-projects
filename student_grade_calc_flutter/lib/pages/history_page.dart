@@ -1,5 +1,8 @@
+import 'dart:io' show File;
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
 import '../data/history_repository.dart';
 import '../models/grade_session.dart';
 import '../services/excel_service.dart';
@@ -133,6 +136,8 @@ class _HistoryPageState extends State<HistoryPage> {
               ExportButtons(
                 onExportExcel: () => _exportExcel(session),
                 onExportPdf: () => _exportPdf(session),
+                onShareExcel: () => _shareExcel(session),
+                onSharePdf: () => _sharePdf(session),
               ),
             ],
           ),
@@ -143,6 +148,11 @@ class _HistoryPageState extends State<HistoryPage> {
 
   Future<void> _exportExcel(GradeSession session) async {
     try {
+      final bytes = _excelService.generateReportBytes(
+        session.students,
+        session.subjectHeaders,
+      );
+
       final savePath = await FilePicker.platform.saveFile(
         dialogTitle: 'Save Grade Report',
         fileName: 'grades_output.xlsx',
@@ -151,11 +161,56 @@ class _HistoryPageState extends State<HistoryPage> {
       );
       if (savePath == null) return;
 
-      await _excelService.writeFile(
-          savePath, session.students, session.subjectHeaders);
+      final file =
+          File(savePath.endsWith('.xlsx') ? savePath : '$savePath.xlsx');
+      if (!await file.exists()) {
+        await file.writeAsBytes(bytes);
+      }
+
       _showSnackBar('Excel file saved successfully.');
     } catch (e) {
       _showSnackBar('Failed to save Excel: ${e.toString()}');
+    }
+  }
+
+  Future<void> _shareExcel(GradeSession session) async {
+    try {
+      final bytes = _excelService.generateReportBytes(
+        session.students,
+        session.subjectHeaders,
+      );
+
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/grades_output.xlsx').create();
+      await file.writeAsBytes(bytes);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Sharing Grade Report (Excel)',
+      );
+    } catch (e) {
+      _showSnackBar('Failed to share Excel: ${e.toString()}');
+    }
+  }
+
+  Future<void> _sharePdf(GradeSession session) async {
+    try {
+      final bytes = await _pdfService.generateReport(
+        students: session.students,
+        subjectHeaders: session.subjectHeaders,
+        sessionLabel: session.fileName,
+      );
+
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/grade_report.pdf').create();
+      await file.writeAsBytes(bytes);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Sharing Grade Report (PDF)',
+      );
+    } catch (e) {
+      _showSnackBar('Failed to share PDF: ${e.toString()}');
     }
   }
 

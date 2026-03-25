@@ -3,7 +3,9 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
 import '../data/history_repository.dart';
 import '../models/grade_session.dart';
 import '../models/student.dart';
@@ -177,6 +179,49 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // ── Share Excel ────────────────────────────────────────────────────────────
+  Future<void> _shareExcel() async {
+    try {
+      final bytes = _excelService.generateReportBytes(
+        _students,
+        _subjectHeaders,
+      );
+
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/grades_output.xlsx').create();
+      await file.writeAsBytes(bytes);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Sharing Grade Report (Excel)',
+      );
+    } catch (e) {
+      _showSnackBar('Failed to share Excel: ${e.toString()}');
+    }
+  }
+
+  // ── Share PDF ──────────────────────────────────────────────────────────────
+  Future<void> _sharePdf() async {
+    try {
+      final bytes = await _pdfService.generateReport(
+        students: _students,
+        subjectHeaders: _subjectHeaders,
+        sessionLabel: _selectedFileName ?? 'Grade Report',
+      );
+
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/grade_report.pdf').create();
+      await file.writeAsBytes(bytes);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Sharing Grade Report (PDF)',
+      );
+    } catch (e) {
+      _showSnackBar('Failed to share PDF: ${e.toString()}');
+    }
+  }
+
   void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -255,6 +300,8 @@ class _HomePageState extends State<HomePage> {
             child: ExportButtons(
               onExportExcel: _exportExcel,
               onExportPdf: _exportPdf,
+              onShareExcel: _shareExcel,
+              onSharePdf: _sharePdf,
             ),
           ),
       ],
